@@ -40,8 +40,8 @@ setup(
     'neural network interpretability.'),
   author = 'The Lucid Authors',
   author_email = 'deepviz@google.com',
-  url = 'https://github.com/tensorflow/lucid',
-  download_url = ('https://github.com/tensorflow/lucid'
+  url = 'https://github.com/neptunes5thmoon/lucid',
+  download_url = ('https://github.com/neptunes5thmoon/lucid'
     '/archive/v{}.tar.gz'.format(version)),
   license = 'Apache License 2.0',
   keywords = ['tensorflow', 'tensor', 'machine learning', 'neural networks',
