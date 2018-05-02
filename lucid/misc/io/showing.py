@@ -74,10 +74,8 @@ def image(array, domain=None, w=None, format='png'):
   html = '<img src=\"' + data_url + '\">'
   _display_html(html)
 
-
 def images(arrays, labels=None, domain=None, w=None):
   """Display a list of images with optional labels.
-
   Args:
     arrays: A list of NumPy arrays representing images
     labels: A list of strings to label each image.
@@ -99,6 +97,51 @@ def images(arrays, labels=None, domain=None, w=None):
   _display_html(s)
 
 
+def volume(array, domain=None, w=None):
+  """Display a volume with a slider through the images.
+
+  Args:
+    array: A list of NumPy arrays representing images
+    domain: Domain of pixel values, inferred from min & max values if None
+    w: width of output image, scaled using nearest neighbor interpolation.
+      size unchanged if None
+  """
+
+  s = """<div class="w3-content w3-display-container">"""
+  for i, array in enumerate(array):
+    url = _image_url(array)
+    s += """<div class="w3-display-container mySlides">"""
+    s += """<img src={url}>""".format(url=url)
+    s += """</div>"""
+
+  s+="</div>"
+  s+="""<div class="slidecontainer">
+        <input type="range" min="0" max="{range}" value="{middle}" class="slider" id="myRange">
+        <p>Index: <span id="indexind"></span></p>
+      </div>""".format(range=i, middle=int(i/2))
+  s+="""<script>
+          var slider = document.getElementById("myRange");
+          var indexindicator = document.getElementById("indexind");
+          indexindicator.innerHTML = slider.value;
+          var sliceIndex = slider.value;
+          showDivs(sliceIndex);
+          slider.oninput = function() {
+            sliceIndex = this.value;
+            indexindicator.innerHTML = sliceIndex;
+            showDivs(sliceIndex);
+          }
+          function showDivs(n) {
+            var i;
+            var x = document.getElementsByClassName("mySlides");
+            for (i = 0; i < x.length; i++) {
+              x[i].style.display = "none";
+            }
+            x[sliceIndex].style.display="block";
+          }
+    </script>"""
+  _display_html(s)
+
+
 def show(thing, domain=(0, 1)):
   """Display a nupmy array without having to specify what it represents.
 
@@ -109,11 +152,18 @@ def show(thing, domain=(0, 1)):
   if isinstance(thing, np.ndarray):
     rank = len(thing.shape)
     if rank == 4:
-      log.debug("Show is assuming rank 4 tensor to be a list of images.")
-      images(thing, domain=domain)
-    elif rank in (2, 3):
-      log.debug("Show is assuming rank 2 or 3 tensor to be an image.")
+      log.debug("Show is assuming rank 4 tensor to be a volume.")
+      volume(thing, domain=domain)
+    elif rank == 2:
+      log.debug("Show is assuming rank 2 to be an image.")
       image(thing, domain=domain)
+    elif rank == 3:
+      if thing.shape[-1]==3 or thing.shape[-1]==1:
+        log.debug("Show is assuming this rank 3 tensor with last dim 3 to be an image.")
+        image(thing, domain=domain)
+      else:
+        log.debug("Show is assuming this rank 3 tensor to be a volume")
+        volume(thing, domain=domain)
     else:
       log.warn("Show only supports numpy arrays of rank 2-4. Using repr().")
       print(repr(thing))
